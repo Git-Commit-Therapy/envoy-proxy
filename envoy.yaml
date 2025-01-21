@@ -1,0 +1,67 @@
+static_resources:
+  listeners:
+    - name: main_listener
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8080
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress_http
+                access_log:
+                  - name: envoy.access_loggers.stdout
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                http_filters:
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: frontend
+                      domains: ["www.sancommitto.local, sancommitto.local"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            # host_rewrite_literal: www.envoyproxy.io
+                            cluster: frontend_service
+                    - name: auth
+                      domains: ["auth.sancommitto.local"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: auth_service
+
+
+  clusters:
+    - name: frontend_service
+      # connect_timeout: 1s
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: frontend_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: react-frontend.default.svc.cluster.local
+                      port_value: 443
+    - name: auth_service
+      # connect_timeout: 1s
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: auth_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: auth-golang.default.svc.cluster.local
+                      port_value: 443
