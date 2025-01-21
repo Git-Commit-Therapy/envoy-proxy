@@ -24,7 +24,7 @@ static_resources:
                   name: local_route
                   virtual_hosts:
                     - name: frontend
-                      domains: ["www.sancommitto.local, sancommitto.local"]
+                      domains: ["www.sancommitto.local", "sancommitto.local"]
                       routes:
                         - match:
                             prefix: "/"
@@ -51,8 +51,8 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: react-frontend.default.svc.cluster.local
-                      port_value: 443
+                      address: react-frontend-service.default.svc.cluster.local
+                      port_value: 3000
     - name: auth_service
       # connect_timeout: 1s
       type: STRICT_DNS
@@ -63,5 +63,5 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: auth-golang.default.svc.cluster.local
+                      address: auth-golang-service.default.svc.cluster.local
                       port_value: 443
