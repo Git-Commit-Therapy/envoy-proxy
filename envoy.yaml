@@ -38,6 +38,16 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: auth_service
+                    - name: backend-patients
+                      domains: ["patients.sancommitto.local"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: backend_patients_service
+                          typed_per_filter_config:
+                            envoy.filters.http.grpc_web:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
 
 
   clusters:
@@ -60,8 +70,19 @@ static_resources:
         cluster_name: auth_service
         endpoints:
           - lb_endpoints:
-              - endpoint:
-                  address:
-                    socket_address:
-                      address: auth-golang-service.default.svc.cluster.local
-                      port_value: 443
+            - endpoint:
+                address:
+                  socket_address:
+                    address: auth-golang-service.default.svc.cluster.local
+                    port_value: 443
+    - name: backend_patients_service
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: backend_patients_service
+        endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: java-backend-patients-service.default.svc.cluster.local
+                    port_value: 443
