@@ -16,6 +16,9 @@ static_resources:
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
                 http_filters:
+                  - name: envoy.filters.http.grpc_web
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -29,7 +32,6 @@ static_resources:
                         - match:
                             prefix: "/"
                           route:
-                            # host_rewrite_literal: www.envoyproxy.io
                             cluster: frontend_service
                     - name: auth
                       domains: ["auth.sancommitto.local"]
@@ -45,10 +47,6 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: backend_patients_service
-                          typed_per_filter_config:
-                            envoy.filters.http.grpc_web:
-                              "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
-
 
   clusters:
     - name: frontend_service
@@ -75,6 +73,19 @@ static_resources:
                   socket_address:
                     address: auth-golang-service.default.svc.cluster.local
                     port_value: 443
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          common_tls_context:
+            tls_certificates:
+            - certificate_chain:
+                filename: "/etc/envoy/certs/tls.crt"
+              private_key:
+                filename: "/etc/envoy/certs/tls.key"
+            validation_context:
+              trusted_ca:
+                filename: "/etc/envoy/trust/root-certs.pem"
     - name: backend_patients_service
       type: STRICT_DNS
       load_assignment:
@@ -86,3 +97,16 @@ static_resources:
                   socket_address:
                     address: java-backend-patients-service.default.svc.cluster.local
                     port_value: 443
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          common_tls_context:
+            tls_certificates:
+            - certificate_chain:
+                filename: "/etc/envoy/certs/tls.crt"
+              private_key:
+                filename: "/etc/envoy/certs/tls.key"
+            validation_context:
+              trusted_ca:
+                filename: "/etc/envoy/trust/root-certs.pem"
