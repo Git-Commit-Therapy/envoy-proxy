@@ -16,6 +16,11 @@ static_resources:
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
                 http_filters:
+                  # CORS management
+                  - name: envoy.filters.http.cors
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+                  # GRPC
                   - name: envoy.filters.http.grpc_web
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
@@ -26,6 +31,7 @@ static_resources:
                 route_config:
                   name: local_route
                   virtual_hosts:
+                    # Frontend
                     - name: frontend
                       domains: ["www.sancommitto.local", "sancommitto.local"]
                       routes:
@@ -33,13 +39,23 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: frontend_service
+                      # Auth subdomain
                     - name: auth
-                      domains: ["auth.sancommitto.local"]
+                      domains: ["auth.sancommitto.local", "auth.sancommitto.local:80"]
                       routes:
                         - match:
                             prefix: "/"
                           route:
                             cluster: auth_service
+                      cors: # Config CORS for 'auth'
+                        allow_origin_string_match:
+                          - suffix: ".sancommitto.local"
+                        allow_methods: "GET, POST, OPTIONS"
+                        allow_headers: "authorization"
+                        expose_headers: "authorization"
+                        max_age: "86400"
+                        allow_credentials: true
+                    # Patients backend subdomain
                     - name: backend-patients
                       domains: ["patients.sancommitto.local"]
                       routes:
@@ -47,6 +63,14 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: backend_patients_service
+                      cors: # Config CORS for 'backend-patients'
+                        allow_origin_string_match:
+                          - prefix: "*.sancommitto.local"
+                        allow_methods: "GET, POST, OPTIONS"
+                        allow_headers: "authorization"
+                        expose_headers: "authorization"
+                        max_age: "86400"
+                        allow_credentials: true
 
   clusters:
     - name: frontend_service
@@ -64,6 +88,7 @@ static_resources:
     - name: auth_service
       # connect_timeout: 1s
       type: STRICT_DNS
+      http2_protocol_options: {}
       load_assignment:
         cluster_name: auth_service
         endpoints:
@@ -88,6 +113,7 @@ static_resources:
                 filename: "/etc/envoy/trust/root-certs.pem"
     - name: backend_patients_service
       type: STRICT_DNS
+      http2_protocol_options: {}
       load_assignment:
         cluster_name: backend_patients_service
         endpoints:
