@@ -88,6 +88,7 @@ static_resources:
     - name: auth_service
       # connect_timeout: 1s
       type: STRICT_DNS
+      # Without this it goes 502 bad gateway
       http2_protocol_options: {}
       load_assignment:
         cluster_name: auth_service
@@ -113,6 +114,7 @@ static_resources:
                 filename: "/etc/envoy/trust/root-certs.pem"
     - name: backend_patients_service
       type: STRICT_DNS
+      # Without this it goes 502 bad gateway
       http2_protocol_options: {}
       load_assignment:
         cluster_name: backend_patients_service
