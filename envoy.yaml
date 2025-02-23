@@ -84,7 +84,7 @@ static_resources:
                   address:
                     socket_address:
                       address: react-frontend-service.default.svc.cluster.local
-                      port_value: 3000
+                      port_value: 80
     - name: auth_service
       # connect_timeout: 1s
       type: STRICT_DNS
