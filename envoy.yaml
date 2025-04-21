@@ -85,6 +85,26 @@ static_resources:
                       routes:
                         - match:
                             prefix: "/"
+                            headers:
+                              - name: ":method"
+                                exact_match: "OPTIONS"
+                          direct_response:
+                            status: 204
+                          response_headers_to_add:
+                            - header:
+                                key: access-control-allow-origin
+                                value: "*"
+                            - header:
+                                key: access-control-allow-methods
+                                value: "GET, POST, OPTIONS"
+                            - header:
+                                key: access-control-allow-headers
+                                value: "authorization, content-type, x-grpc-web, x-user-agent, grpc-timeout, x-requested-with"
+                            - header:
+                                key: access-control-allow-credentials
+                                value: "true"
+                        - match:
+                            prefix: "/"
                           route:
                             cluster: backend_patients_service
                           typed_per_filter_config:
