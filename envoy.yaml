@@ -11,6 +11,8 @@ static_resources:
               typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
                 stat_prefix: ingress_http
+                http_protocol_options:
+                  enable_trailers: true
                 access_log:
                   - name: envoy.access_loggers.stdout
                     typed_config:
@@ -45,17 +47,39 @@ static_resources:
                       routes:
                         - match:
                             prefix: "/"
+                            headers:
+                              - name: ":method"
+                                exact_match: "OPTIONS"
+                          direct_response:
+                            status: 204
+                          response_headers_to_add:
+                            - header:
+                                key: access-control-allow-origin
+                                value: "*"
+                            - header:
+                                key: access-control-allow-methods
+                                value: "GET, POST, OPTIONS"
+                            - header:
+                                key: access-control-allow-headers
+                                value: "authorization, content-type, x-grpc-web, x-user-agent, grpc-timeout, x-requested-with"
+                            - header:
+                                key: access-control-allow-credentials
+                                value: "true"
+                        - match:
+                            prefix: "/"
                           route:
                             cluster: auth_service
-                      cors: # Config CORS for 'auth'
-                        allow_origin_string_match:
-                          - suffix: "sancommitto.local"
-                        allow_methods: "GET, POST, OPTIONS"
-                        allow_headers: "authorization, content-type, x-grpc-web, x-user-agent, grpc-timeout, x-requested-with"
-                        expose_headers: "authorization, grpc-status, grpc-message"
-                        max_age: "86400"
-                        allow_credentials: true
-                    # Patients backend subdomain
+                      typed_per_filter_config:
+                        envoy.filters.http.cors:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy
+                          allow_origin_string_match:
+                            - suffix: "sancommitto.local"
+                          allow_methods: "GET, POST, OPTIONS"
+                          allow_headers: "authorization, content-type, x-grpc-web, x-user-agent, grpc-timeout, x-requested-with"
+                          expose_headers: "authorization, grpc-status, grpc-message"
+                          max_age: "86400"
+                          allow_credentials: true
+
                     - name: backend-patients
                       domains: ["patients.sancommitto.local"]
                       routes:
