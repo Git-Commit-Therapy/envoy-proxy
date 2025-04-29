@@ -150,11 +150,6 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           common_tls_context:
-            tls_certificates:
-            - certificate_chain:
-                filename: "/etc/envoy/certs/tls.crt"
-              private_key:
-                filename: "/etc/envoy/certs/tls.key"
             validation_context:
               trusted_ca:
                 filename: "/etc/envoy/trust/root-certs.pem"
@@ -176,11 +171,6 @@ static_resources:
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
           common_tls_context:
-            tls_certificates:
-            - certificate_chain:
-                filename: "/etc/envoy/certs/tls.crt"
-              private_key:
-                filename: "/etc/envoy/certs/tls.key"
             validation_context:
               trusted_ca:
                 filename: "/etc/envoy/trust/root-certs.pem"
