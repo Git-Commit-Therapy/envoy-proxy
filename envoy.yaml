@@ -41,6 +41,13 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: frontend_service
+                    - name: keycloak
+                      domains: ["keycloak.sancommitto.local"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: keycloak_service
                     # Auth subdomain
                     - name: auth
                       domains: ["auth.sancommitto.local", "auth.sancommitto.local:80"]
@@ -81,7 +88,7 @@ static_resources:
                               allow_credentials: true
 
                     - name: backend-patients
-                      domains: ["patients.sancommitto.local"]
+                      domains: ["patients.sancommitto.local", "patients.sancommitto.local:80"]
                       routes:
                         - match:
                             prefix: "/"
@@ -118,6 +125,44 @@ static_resources:
                               max_age: "86400"
                               allow_credentials: true
 
+                    - name: backend-employees
+                      domains: ["employees.sancommitto.local", "employees.sancommitto.local:80"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                            headers:
+                              - name: ":method"
+                                exact_match: "OPTIONS"
+                          direct_response:
+                            status: 204
+                          response_headers_to_add:
+                            - header:
+                                key: access-control-allow-origin
+                                value: "*"
+                            - header:
+                                key: access-control-allow-methods
+                                value: "GET, POST, OPTIONS"
+                            - header:
+                                key: access-control-allow-headers
+                                value: "authorization, content-type, x-grpc-web, x-user-agent, grpc-timeout, x-requested-with"
+                            - header:
+                                key: access-control-allow-credentials
+                                value: "true"
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: backend_employees_service
+                          typed_per_filter_config:
+                            envoy.filters.http.cors:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy
+                              allow_origin_string_match:
+                                - prefix: "*"
+                              allow_methods: "GET, POST, OPTIONS"
+                              allow_headers: "authorization, content-type, x-grpc-web, x-user-agent, grpc-timeout, x-requested-with"
+                              expose_headers: "authorization, grpc-status, grpc-message"
+                              max_age: "86400"
+                              allow_credentials: true
+
   clusters:
     - name: frontend_service
       # connect_timeout: 1s
@@ -131,6 +176,27 @@ static_resources:
                     socket_address:
                       address: vue-frontend-service.default.svc.cluster.local
                       port_value: 80
+
+    - name: keycloak_service
+      # connect_timeout: 1s
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: keycloak_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: keycloak-authenticator-service.default.svc.cluster.local
+                      port_value: 8443
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          common_tls_context:
+            validation_context:
+              trusted_ca:
+                filename: "/etc/envoy/trust/root-certs.pem"
     - name: auth_service
       # connect_timeout: 1s
       type: STRICT_DNS
@@ -153,6 +219,7 @@ static_resources:
             validation_context:
               trusted_ca:
                 filename: "/etc/envoy/trust/root-certs.pem"
+
     - name: backend_patients_service
       type: STRICT_DNS
       # Without this it goes 502 bad gateway
@@ -165,6 +232,28 @@ static_resources:
                 address:
                   socket_address:
                     address: java-backend-patients-service.default.svc.cluster.local
+                    port_value: 443
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          common_tls_context:
+            validation_context:
+              trusted_ca:
+                filename: "/etc/envoy/trust/root-certs.pem"
+
+    - name: backend_employees_service
+      type: STRICT_DNS
+      # Without this it goes 502 bad gateway
+      http2_protocol_options: {}
+      load_assignment:
+        cluster_name: backend_employees_service
+        endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: java-backend-employees-service.default.svc.cluster.local
                     port_value: 443
       transport_socket:
         name: envoy.transport_sockets.tls
