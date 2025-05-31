@@ -41,6 +41,23 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: frontend_service
+
+                    - name: frontend_emergency
+                      domains: ["emergency.sancommitto.local"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: frontend_emergency_service
+
+                    - name: backend_emergency
+                      domains: ["api.emergency.sancommitto.local"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: backend_emergency_service
+
                     - name: keycloak
                       domains: ["keycloak.sancommitto.local"]
                       routes:
@@ -48,6 +65,7 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: keycloak_service
+
                     # Auth subdomain
                     - name: auth
                       domains: ["auth.sancommitto.local", "auth.sancommitto.local:80"]
@@ -177,6 +195,42 @@ static_resources:
                       address: vue-frontend-service.default.svc.cluster.local
                       port_value: 80
 
+    - name: frontend_emergency_service
+      # connect_timeout: 1s
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: frontend_emergency_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: vue-frontend-emergency-ward-panels-service.default.svc.cluster.local
+                      port_value: 80
+
+    - name: backend_emergency_service
+      # connect_timeout: 1s
+      type: STRICT_DNS
+      # Without this it goes 502 bad gateway
+      http2_protocol_options: {}
+      load_assignment:
+        cluster_name: backend_emergency_service
+        endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: java-emergency-ward-panels-service.default.svc.cluster.local
+                    port_value: 443
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          common_tls_context:
+            validation_context:
+              trusted_ca:
+                filename: "/etc/envoy/trust/root-certs.pem"
+
     - name: keycloak_service
       # connect_timeout: 1s
       type: STRICT_DNS
@@ -197,6 +251,7 @@ static_resources:
             validation_context:
               trusted_ca:
                 filename: "/etc/envoy/trust/root-certs.pem"
+
     - name: auth_service
       # connect_timeout: 1s
       type: STRICT_DNS
