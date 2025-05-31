@@ -74,7 +74,8 @@ static_resources:
                             prefix: "/"
                             headers:
                               - name: ":method"
-                                exact_match: "OPTIONS"
+                                string_match:
+                                  exact: "OPTIONS"
                           direct_response:
                             status: 204
                           response_headers_to_add:
@@ -105,14 +106,15 @@ static_resources:
                               max_age: "86400"
                               allow_credentials: true
 
-                    - name: backend-patients
+                    - name: backend_patients
                       domains: ["patients.sancommitto.local", "patients.sancommitto.local:80"]
                       routes:
                         - match:
                             prefix: "/"
                             headers:
                               - name: ":method"
-                                exact_match: "OPTIONS"
+                                string_match:
+                                  exact: "OPTIONS"
                           direct_response:
                             status: 204
                           response_headers_to_add:
@@ -143,14 +145,15 @@ static_resources:
                               max_age: "86400"
                               allow_credentials: true
 
-                    - name: backend-employees
+                    - name: backend_employees
                       domains: ["employees.sancommitto.local", "employees.sancommitto.local:80"]
                       routes:
                         - match:
                             prefix: "/"
                             headers:
                               - name: ":method"
-                                exact_match: "OPTIONS"
+                                string_match:
+                                  exact: "OPTIONS"
                           direct_response:
                             status: 204
                           response_headers_to_add:
