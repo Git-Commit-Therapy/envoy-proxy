@@ -35,7 +35,7 @@ static_resources:
                   virtual_hosts:
                     # Frontend
                     - name: frontend
-                      domains: ["www.sancommitto.local", "sancommitto.local"]
+                      domains: ["www.sancommitto.local", "sancommitto.local", "www.sancommitto.xyz", "sancommitto.xyz"]
                       routes:
                         - match:
                             prefix: "/"
@@ -43,7 +43,7 @@ static_resources:
                             cluster: frontend_service
 
                     - name: frontend_emergency
-                      domains: ["emergency.sancommitto.local"]
+                      domains: ["emergency.sancommitto.local", "emergency.sancommitto.xyz"]
                       routes:
                         - match:
                             prefix: "/"
@@ -51,7 +51,7 @@ static_resources:
                             cluster: frontend_emergency_service
 
                     - name: backend_emergency
-                      domains: ["api.emergency.sancommitto.local"]
+                      domains: ["api.emergency.sancommitto.local", "api.emergency.sancommitto.xyz"]
                       routes:
                         - match:
                             prefix: "/"
@@ -59,7 +59,7 @@ static_resources:
                             cluster: backend_emergency_service
 
                     - name: keycloak
-                      domains: ["keycloak.sancommitto.local"]
+                      domains: ["keycloak.sancommitto.local", "keycloak.sancommitto.xyz"]
                       routes:
                         - match:
                             prefix: "/"
@@ -68,7 +68,7 @@ static_resources:
 
                     # Auth subdomain
                     - name: auth
-                      domains: ["auth.sancommitto.local", "auth.sancommitto.local:80"]
+                      domains: ["auth.sancommitto.local", "auth.sancommitto.xyz"]
                       routes:
                         - match:
                             prefix: "/"
@@ -107,7 +107,7 @@ static_resources:
                               allow_credentials: true
 
                     - name: backend_patients
-                      domains: ["patients.sancommitto.local", "patients.sancommitto.local:80"]
+                      domains: ["patients.sancommitto.local", "patients.sancommitto.xyz"]
                       routes:
                         - match:
                             prefix: "/"
@@ -146,7 +146,7 @@ static_resources:
                               allow_credentials: true
 
                     - name: backend_employees
-                      domains: ["employees.sancommitto.local", "employees.sancommitto.local:80"]
+                      domains: ["employees.sancommitto.local", "employees.sancommitto.local.xyz"]
                       routes:
                         - match:
                             prefix: "/"
