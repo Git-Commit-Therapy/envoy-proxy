@@ -57,6 +57,9 @@ static_resources:
                             prefix: "/"
                           route:
                             cluster: backend_emergency_service
+                            # To enable WebSocket
+                            upgrade_configs:
+                            - upgrade_type: websocket
 
                     - name: keycloak
                       domains: ["keycloak.sancommitto.local", "keycloak.sancommitto.xyz"]
@@ -214,8 +217,6 @@ static_resources:
     - name: backend_emergency_service
       # connect_timeout: 1s
       type: STRICT_DNS
-      # Without this it goes 502 bad gateway
-      http2_protocol_options: {}
       load_assignment:
         cluster_name: backend_emergency_service
         endpoints:
@@ -224,15 +225,7 @@ static_resources:
                 address:
                   socket_address:
                     address: java-emergency-ward-panels-service.default.svc.cluster.local
-                    port_value: 443
-      transport_socket:
-        name: envoy.transport_sockets.tls
-        typed_config:
-          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-          common_tls_context:
-            validation_context:
-              trusted_ca:
-                filename: "/etc/envoy/trust/root-certs.pem"
+                    port_value: 80
 
     - name: keycloak_service
       # connect_timeout: 1s
