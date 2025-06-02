@@ -149,7 +149,7 @@ static_resources:
                               allow_credentials: true
 
                     - name: backend_employees
-                      domains: ["employees.sancommitto.local", "employees.sancommitto.local.xyz"]
+                      domains: ["employees.sancommitto.local", "employees.sancommitto.xyz"]
                       routes:
                         - match:
                             prefix: "/"
